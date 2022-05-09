@@ -1,0 +1,9 @@
+.git
+docs
+tests
+.env.sample
+.gitignore
+.gitlab-ci.yml
+docker-compose.yml
+Makefile
+*.mdw
