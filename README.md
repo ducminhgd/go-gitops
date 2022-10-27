@@ -70,3 +70,4 @@ SMTP_PASSWORD=
   - Minor tags are: `#minor`, `#change`/`#changed`,  `#add`/`#added`, `#update`/`#updated`
   - Patch tags are: `#patch`/`#patched`, `#fix`/`#fixed`, `#hotfix`/`#hotfixed`, `#bugfix`/`#bugfixed`
 2. If commit message DOES NOT contain a tag, then consider as `#minor`
+3. A tag SHOULD be `#<tagName>` or `<tagName>:`.
