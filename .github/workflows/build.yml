@@ -26,4 +26,4 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: $IMAGE_NAME:$GITHUB_REF_NAME
+        tags: ${{ IMAGE_NAME }}:${{ GITHUB_REF_NAME }}
