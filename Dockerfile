@@ -5,7 +5,7 @@ ENV GOARCH="amd64" \
 
 WORKDIR /app
 COPY . .
-RUN go build -tags musl --ldflags "-extldflags -static"  -o gitlab ./cmd/gitlab && go build -tags musl --ldflags "-extldflags -static"  -o workloads ./cmd/workloads
+RUN go build -tags musl --ldflags "-extldflags -static"  -o gitlab ./cmd/gitlab
 RUN apk add --no-cache --update curl && curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl \
     && chmod +x ./kubectl \
     && mv ./kubectl /usr/local/bin
