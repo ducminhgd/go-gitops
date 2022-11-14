@@ -34,10 +34,10 @@ PROJECT_ID: ID of project on Gitlab`,
 	Example: `./gitlab tag ${pid} --ref ${target-branch} --version ${desired-version}`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 2 {
-			log.Fatal("[Gitops] - Error: getting more than the desired number of arg.")
+			log.Fatal("[GitOps] - Error: getting more than the desired number of arg.")
 		}
 		if len(args) < 2 {
-			log.Fatal("[Gitops] - Error: receiving too little arg.")
+			log.Fatal("[GitOps] - Error: receiving too little arg.")
 		}
 		command = args[0]
 		projectID = args[1]
@@ -62,7 +62,7 @@ PROJECT_ID: ID of project on Gitlab`,
 		}
 
 		if !in {
-			log.Fatalf("[Gitops] - Error: %s not in {create-branch, tag, release, send}.", command)
+			log.Fatalf("[GitOps] - Error: %s not in {create-branch, tag, release, send}.", command)
 		}
 
 		modes := []string{MODE_COMPACT, MODE_SIMPLE}
@@ -81,7 +81,7 @@ PROJECT_ID: ID of project on Gitlab`,
 
 func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
-	log.Println("[Gitops] - Running")
+	log.Println("[GitOps] - Running")
 
 	rootCmd.Flags().StringP("host", "", tools.Getenv("GIT_HOST", "https://gitlab.com"), "Git host, if not provided then get GIT_HOST from environment variables.")
 	rootCmd.Flags().StringP("job-token", "", tools.Getenv("CI_JOB_TOKEN", ""), "Job Token for Gitlab authentication, if not provided then get CI_JOB_TOKEN from environment variables.")
@@ -99,12 +99,14 @@ func main() {
 	}
 	var gitClient *gitlab.Client
 	if jobToken != "" {
+		log.Printf("[GitOps] - Using Job token:  %v", err)
 		gitClient, err = gitlab.NewJobClient(jobToken, gitlab.WithBaseURL(host))
 	} else {
+		log.Printf("[GitOps] - Using Private access token:  %v", err)
 		gitClient, err = gitlab.NewClient(token, gitlab.WithBaseURL(host))
 	}
 	if err != nil {
-		log.Printf("[Gitops] - Error:  %v", err)
+		log.Printf("[GitOps] - Error:  %v", err)
 		os.Exit(1)
 	}
 
@@ -116,7 +118,7 @@ func main() {
 	if command == "create-branch" || command == "release" {
 		newVersion, _ := getVersionAndChangeLog(mode)
 		branchName := "release/" + newVersion
-		log.Println("[Gitops] - Create branch: ", branchName)
+		log.Println("[GitOps] - Create branch: ", branchName)
 		success := g.CreateNewBranch(&branchName, &ref)
 		if mode == MODE_COMPACT && !success {
 			os.Exit(1)
@@ -133,7 +135,7 @@ func main() {
 			latestCommit := g.GetLatestCommit("release/" + version)
 			diff := g.GetDiff(listVersionTag[version].Commit.ID, latestCommit.ID, true)
 			if len(diff.Commits) == 0 {
-				log.Println("[Gitops] - There is no differences between", version, "and", latestCommit)
+				log.Println("[GitOps] - There is no differences between", version, "and", latestCommit)
 				os.Exit(1)
 			}
 			changeLog = gitclient.GetHotfixChangeLog(listVersionTag[version].Release.Description, diff)
@@ -154,14 +156,14 @@ func main() {
 
 	if command == "send" {
 		if version == "" {
-			log.Fatal("[Gitops] - Error: version is required")
+			log.Fatal("[GitOps] - Error: version is required")
 		}
 		env := tools.Getenv("ENV", "Production")
 		project, err := g.GetProject()
 		tools.CheckFatal(err)
 		tag := g.GetTag("v" + version)
 		if project == nil || tag == nil {
-			log.Println("[Gitops] - Project or Tag does not exit")
+			log.Println("[GitOps] - Project or Tag does not exit")
 			os.Exit(1)
 		}
 
@@ -172,12 +174,12 @@ func main() {
 		body := tag.Release.Description + fmt.Sprintf("\r\n\r\n- Commit hash: %s", tag.Commit.ID)
 		sentMail := tools.SendEmail(sendTo, sendCC, sendBCC, body, subject)
 		if !sentMail {
-			log.Println("[Gitops] - Send email failed")
+			log.Println("[GitOps] - Send email failed")
 			os.Exit(1)
 		}
 	}
 
-	log.Println("[Gitops] - Success")
+	log.Println("[GitOps] - Success")
 	os.Exit(0)
 }
 
@@ -190,7 +192,7 @@ func getVersionAndChangeLog(mode string) (string, map[string][]*gitlab.Commit) {
 	lastestVersion := gitclient.GetLatestVersion(&listVersionTag)
 	diff := g.GetDiff(listVersionTag[lastestVersion].Commit.ID, ref, true)
 	if mode != MODE_COMPACT && len(diff.Diffs) == 0 {
-		log.Println("[Gitops] - There is no differences between", lastestVersion, "and", ref)
+		log.Println("[GitOps] - There is no differences between", lastestVersion, "and", ref)
 		os.Exit(1)
 	}
 	changelogType := gitclient.GetChangelogType(diff.Commits)

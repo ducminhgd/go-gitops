@@ -12,7 +12,7 @@ type Gitlab struct {
 	ProjectID string
 }
 
-// Return list tags of project gitlab
+// GetListTags gets list tags of project gitlab
 func (g Gitlab) GetListTags() []*gitlab.Tag {
 	tags, _, err := g.Client.Tags.ListTags(g.ProjectID, nil)
 	if err != nil {
@@ -21,7 +21,7 @@ func (g Gitlab) GetListTags() []*gitlab.Tag {
 	return tags
 }
 
-// Create tag for project gitlab and also create release for that tag
+// CreateNewTag creates tag for project gitlab and also create release for that tag
 func (g Gitlab) CreateNewTag(tagName, ref, message, releaseDescription *string) bool {
 	createTagOption := gitlab.CreateTagOptions{TagName: tagName, Ref: ref, Message: message, ReleaseDescription: releaseDescription}
 	_, _, err := g.Client.Tags.CreateTag(g.ProjectID, &createTagOption)
@@ -45,7 +45,7 @@ func (g Gitlab) CreateNewTag(tagName, ref, message, releaseDescription *string) 
 	return true
 }
 
-// Create branch for project gitlab
+// CreateNewBranch creates branch for project gitlab
 // param BranchName: name of branch to create
 // Param Ref: branch name to create branch from
 func (g Gitlab) CreateNewBranch(branchName, ref *string) bool {
@@ -58,7 +58,7 @@ func (g Gitlab) CreateNewBranch(branchName, ref *string) bool {
 	return true
 }
 
-// Create list with key is version and value is tag
+// GetListVersionTag Creates list with key is version and value is tag
 func GetListVersionTag(listTag []*gitlab.Tag) map[string]*gitlab.Tag {
 	listVersion := make(map[string]*gitlab.Tag)
 	for _, tag := range listTag {
@@ -67,7 +67,7 @@ func GetListVersionTag(listTag []*gitlab.Tag) map[string]*gitlab.Tag {
 	return listVersion
 }
 
-// Return latest commit of branch
+// GetLatestCommit Returns latest commit of branch
 // param Ref: branch name to get commit from
 func (g Gitlab) GetLatestCommit(ref string) *gitlab.Commit {
 	b := true
@@ -84,7 +84,7 @@ func (g Gitlab) GetLatestCommit(ref string) *gitlab.Commit {
 	return commit[len(commit)-1]
 }
 
-// Return compare of two note
+// GetDiff Returns compare of two note
 func (g Gitlab) GetDiff(from, to string, straight bool) *gitlab.Compare {
 	compareOptions := gitlab.CompareOptions{From: &from, To: &to, Straight: &straight}
 	diff, _, err := g.Client.Repositories.Compare(g.ProjectID, &compareOptions)
@@ -94,7 +94,7 @@ func (g Gitlab) GetDiff(from, to string, straight bool) *gitlab.Compare {
 	return diff
 }
 
-// Return a project gitlab
+// GetProject Returns a project gitlab
 func (g Gitlab) GetProject() (*gitlab.Project, error) {
 	project, _, err := g.Client.Projects.GetProject(g.ProjectID, nil)
 	if err != nil {
@@ -104,7 +104,7 @@ func (g Gitlab) GetProject() (*gitlab.Project, error) {
 	return project, nil
 }
 
-// Return tag of project gitlab
+// GetTag Returns tag of project gitlab
 func (g Gitlab) GetTag(ref string) *gitlab.Tag {
 	tag, _, err := g.Client.Tags.GetTag(g.ProjectID, ref)
 	if err != nil {
@@ -113,7 +113,7 @@ func (g Gitlab) GetTag(ref string) *gitlab.Tag {
 	return tag
 }
 
-// Delete a release of project
+// DeleteRelease Deletes a release of project
 func (g Gitlab) DeleteRelease(tagName string) {
 	_, _, err := g.Client.Releases.DeleteRelease(g.ProjectID, tagName)
 	if err != nil {
@@ -121,7 +121,7 @@ func (g Gitlab) DeleteRelease(tagName string) {
 	}
 }
 
-// Delete tag by tag name
+// DeleteTag Deletes tag by tag name
 func (g Gitlab) DeleteTag(tag string) {
 	_, err := g.Client.Tags.DeleteTag(g.ProjectID, tag)
 	if err != nil {
@@ -129,7 +129,7 @@ func (g Gitlab) DeleteTag(tag string) {
 	}
 }
 
-// Get raw file from repository
+// GetFile gets raw file from repository
 func (g Gitlab) GetFile(filePath, ref string) ([]byte, error) {
 	option := gitlab.GetRawFileOptions{Ref: &ref}
 	file, _, err := g.Client.RepositoryFiles.GetRawFile(g.ProjectID, filePath, &option)
@@ -140,7 +140,7 @@ func (g Gitlab) GetFile(filePath, ref string) ([]byte, error) {
 	return file, nil
 }
 
-// Commits files to a repository
+// CommitFiles commits files to a repository
 func (g Gitlab) CommitFiles(files map[string]string, ref string) error {
 	commitActions := []*gitlab.CommitActionOptions{}
 	for filePath, fileContent := range files {
