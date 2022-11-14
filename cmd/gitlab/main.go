@@ -99,10 +99,10 @@ func main() {
 	}
 	var gitClient *gitlab.Client
 	if jobToken != "" {
-		log.Printf("[GitOps] - Using Job token:  %v", err)
+		log.Print("[GitOps] - Using Job token")
 		gitClient, err = gitlab.NewJobClient(jobToken, gitlab.WithBaseURL(host))
 	} else {
-		log.Printf("[GitOps] - Using Private access token:  %v", err)
+		log.Print("[GitOps] - Using Private access token")
 		gitClient, err = gitlab.NewClient(token, gitlab.WithBaseURL(host))
 	}
 	if err != nil {
@@ -189,14 +189,14 @@ func getVersionAndChangeLog(mode string) (string, map[string][]*gitlab.Commit) {
 		return "1.0.0", nil
 	}
 	listVersionTag := gitclient.GetListVersionTag(listTags)
-	lastestVersion := gitclient.GetLatestVersion(&listVersionTag)
-	diff := g.GetDiff(listVersionTag[lastestVersion].Commit.ID, ref, true)
+	latestVersion := gitclient.GetLatestVersion(&listVersionTag)
+	diff := g.GetDiff(listVersionTag[latestVersion].Commit.ID, ref, true)
 	if mode != MODE_COMPACT && len(diff.Diffs) == 0 {
-		log.Println("[GitOps] - There is no differences between", lastestVersion, "and", ref)
+		log.Println("[GitOps] - There is no differences between", latestVersion, "and", ref)
 		os.Exit(1)
 	}
 	changelogType := gitclient.GetChangelogType(diff.Commits)
-	newVersion := gitclient.BumpVersion(lastestVersion, changelogType)
+	newVersion := gitclient.BumpVersion(latestVersion, changelogType)
 
 	return newVersion, changelogType
 }
