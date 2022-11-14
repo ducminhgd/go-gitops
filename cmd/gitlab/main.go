@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	command, host, token, ref, version, projectID, sendTo, sendCC, sendBCC, jobName, mode string
-	g                                                                                     gitclient.Gitlab
+	command, host, token, jobToken, ref, version, projectID, sendTo, sendCC, sendBCC, jobName, mode string
+	g                                                                                               gitclient.Gitlab
 )
 
 const (
@@ -43,6 +43,7 @@ PROJECT_ID: ID of project on Gitlab`,
 		projectID = args[1]
 		host, _ = cmd.Flags().GetString("host")
 		token, _ = cmd.Flags().GetString("token")
+		jobToken, _ = cmd.Flags().GetString("job-token")
 		ref, _ = cmd.Flags().GetString("ref")
 		version, _ = cmd.Flags().GetString("version")
 		sendTo, _ = cmd.Flags().GetString("send-to")
@@ -83,6 +84,7 @@ func main() {
 	log.Println("[Gitops] - Running")
 
 	rootCmd.Flags().StringP("host", "", tools.Getenv("GIT_HOST", "https://gitlab.com"), "Git host, if not provided then get GIT_HOST from environment variables.")
+	rootCmd.Flags().StringP("job-token", "", tools.Getenv("CI_JOB_TOKEN", ""), "Job Token for Gitlab authentication, if not provided then get CI_JOB_TOKEN from environment variables.")
 	rootCmd.Flags().StringP("token", "", tools.Getenv("GIT_PRIVATE_TOKEN", ""), "Token for Gitlab authentication, if not provided then get GIT_PRIVATE_TOKEN from environment variables.")
 	rootCmd.Flags().StringP("ref", "", "master", "Git ref name or commit hash")
 	rootCmd.Flags().StringP("version", "", "", "Desired version")
@@ -95,8 +97,12 @@ func main() {
 	if err != nil {
 		log.Println("Fail to run custom command")
 	}
-
-	gitClient, err := gitlab.NewClient(token, gitlab.WithBaseURL(host))
+	var gitClient *gitlab.Client
+	if jobToken != "" {
+		gitClient, err = gitlab.NewJobClient(jobToken, gitlab.WithBaseURL(host))
+	} else {
+		gitClient, err = gitlab.NewClient(token, gitlab.WithBaseURL(host))
+	}
 	if err != nil {
 		log.Printf("[Gitops] - Error:  %v", err)
 		os.Exit(1)
