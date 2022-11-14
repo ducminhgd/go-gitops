@@ -15,7 +15,7 @@ FROM alpine
 
 WORKDIR /
 
-RUN apk add --no-cache --update curl
+RUN apk add --no-cache --update curl git
 
 COPY --from=builder /app/gitlab /usr/local/bin/
 
