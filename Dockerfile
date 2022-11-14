@@ -1,16 +1,17 @@
-FROM golang:1.17-alpine as builder
-
-ENV GOARCH="amd64" \
-    GOOS=linux
+FROM --platform=$BUILDPLATFORM golang:1.19-alpine as builder
 
 WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY . .
-RUN go build -tags musl --ldflags "-extldflags -static"  -o gitlab ./cmd/gitlab
+ARG TARGETOS TARGETARCH
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -tags musl --ldflags "-extldflags -static"  -o gitlab ./cmd/gitlab
 RUN apk add --no-cache --update curl && curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl \
     && chmod +x ./kubectl \
     && mv ./kubectl /usr/local/bin
 
-FROM alpine:3.13.6
+FROM alpine
 
 WORKDIR /
 
